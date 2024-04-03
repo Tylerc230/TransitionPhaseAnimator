@@ -1,13 +1,14 @@
 import SwiftUI
-public struct TransitionPhaseAnimator<T: Equatable, Trigger: Equatable, V: View>: View {
-    let restPhase: (Trigger) -> T
-    let transitionPhases: (Trigger, Trigger) -> Array<T>
-    let trigger: Trigger
+public struct TransitionPhaseAnimator<Phase: Equatable, S: Sequence<Phase>, ViewState: Equatable, V: View>: View {
+    let restPhase: (ViewState) -> Phase
+    let transitionPhases: (ViewState, ViewState) -> S
+    let trigger: ViewState
     @ViewBuilder
-    let content: (T) -> V
+    let content: (Phase) -> V
     @State var currentIndex = 0
-    @State var currentPhases: [T]
-    public init(restPhase: @escaping (Trigger) -> T, transitionPhases: @escaping (Trigger, Trigger) -> Array<T>, trigger: Trigger, content: @escaping (T) -> V) {
+    @State var currentPhases: [Phase]
+    
+    public init(restPhase: @escaping (ViewState) -> Phase, transitionPhases: @escaping (ViewState, ViewState) -> S, trigger: ViewState, content: @escaping (Phase) -> V) {
         self.restPhase = restPhase
         self.transitionPhases = transitionPhases
         self.trigger = trigger
@@ -22,11 +23,11 @@ public struct TransitionPhaseAnimator<T: Equatable, Trigger: Equatable, V: View>
             }
     }
     
-    var currentPhase: T {
+    var currentPhase: Phase {
         return currentPhases[currentIndex]
     }
     
-    func setTransitionPhases(oldValue: Trigger, newValue: Trigger) {
+    func setTransitionPhases(oldValue: ViewState, newValue: ViewState) {
         currentIndex = 0
         let currentPhase = restPhase(oldValue)
         var phases = [currentPhase]
