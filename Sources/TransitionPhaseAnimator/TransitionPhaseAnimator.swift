@@ -1,5 +1,15 @@
 import SwiftUI
-public struct TransitionPhaseAnimator<Phase: Equatable, S: Sequence<Phase>, ViewState: Equatable, V: View>: View {
+public protocol AnimationPhase: Equatable {
+    var animation: Animation? { get }
+}
+
+public extension AnimationPhase {
+    var animation: Animation? {
+        .default
+    }
+}
+
+public struct TransitionPhaseAnimator<Phase: AnimationPhase, S: Sequence<Phase>, ViewState: Equatable, V: View>: View {
     let restPhase: (ViewState) -> Phase
     let transitionPhases: (ViewState, ViewState) -> S
     let trigger: ViewState
@@ -17,6 +27,7 @@ public struct TransitionPhaseAnimator<Phase: Equatable, S: Sequence<Phase>, View
     }
     public var body: some View {
         content(currentPhase)
+            .animation(currentPhase.animation, value: currentIndex)
             .onChange(of: trigger) { oldValue, newValue in
                 setTransitionPhases(oldValue: oldValue, newValue: newValue)
                 incrementPhase()
@@ -24,7 +35,7 @@ public struct TransitionPhaseAnimator<Phase: Equatable, S: Sequence<Phase>, View
     }
     
     var currentPhase: Phase {
-        return currentPhases[currentIndex]
+        currentPhases[currentIndex]
     }
     
     func setTransitionPhases(oldValue: ViewState, newValue: ViewState) {
